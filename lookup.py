@@ -20,6 +20,7 @@ def search_animes(data, input_value, song_type_filter=None, type_number_filter=N
     results = []
 
     for anime in data:
+        notbreaked = True
         for field in fields_to_search:
             anime_field = anime.get(field, "")
             anime_field_clean = re.sub('[^a-zA-Z\d\s]+', ' ', str(anime_field))  # Ensure it's a string
@@ -29,12 +30,13 @@ def search_animes(data, input_value, song_type_filter=None, type_number_filter=N
                     continue
                 if type_number_filter is not None and anime['typeNumber'] != type_number_filter:
                     continue
-                results.append((anime, field))
+                results.append((anime, anime_field))
+                notbreaked = False
                 break  # Stop checking other fields once a match is found for this anime
 
         # Special handling for altAnimeNames (list)
-        if "altAnimeNames" in anime:
-            for alt_name in anime["altAnimeNames"]:
+        if "altAnimeNames" in anime and notbreaked:
+            for alt_name in anime["altAnimeNames"][2:]:
                 alt_name_clean = re.sub('[^a-zA-Z\d\s]+', ' ', alt_name)
                 if input_value.lower() in alt_name_clean.lower():
                     if song_type_filter is not None and anime['songType'] != song_type_filter:
@@ -80,42 +82,43 @@ def main():
     with open(json_path, "r", encoding="utf-8") as file:
         data = json.load(file)
 
-    # Get search input from the user
-    search_input = input("Enter search term: ")
-
-    # Parse the input to extract filters
-    search_term, song_type_filter, type_number_filter = parse_input(search_input)
-
-    # Search for matching animes
-    results = search_animes(data, search_term, song_type_filter, type_number_filter)
-
-    # Display results
-    if results:
-        print("\nMatching Animes:")
-        for i, (anime, matched_field) in enumerate(results, start=1):
-            print(
-                f"{i}. {matched_field} ({anime['songName']}) - "
-                f"{song_typer[anime['songType']]} {'' if anime['typeNumber'] == None else anime['typeNumber']}"
-            )
+    while True:
+        # Get search input from the user
+        search_input = input("Enter search term: ")
         
-        # Allow the user to select a result to view its video720
-        try:
-            selection = int(input("\nSelect a number to view its video: "))
-            if 1 <= selection <= len(results):
-                selected_anime = results[selection - 1][0]
-                video_url = (
-                    f"https://naedist.animemusicquiz.com/{selected_anime['video720']}"
-                    if selected_anime.get('video720')
-                    else f"https://naedist.animemusicquiz.com/{selected_anime['video480']}"
+        # Parse the input to extract filters
+        search_term, song_type_filter, type_number_filter = parse_input(search_input)
+
+        # Search for matching animes
+        results = search_animes(data, search_term, song_type_filter, type_number_filter)
+
+        # Display results
+        if results:
+            print("\nMatching Animes:")
+            for i, (anime, matched_field) in enumerate(results, start=1):
+                print(
+                    f"{i}. {matched_field} ({anime['songName']}) - "
+                    f"{song_typer[anime['songType']]} {'' if anime['typeNumber'] == None else anime['typeNumber']}"
                 )
-                print(video_url)
-                webbrowser.open(video_url)
-            else:
-                print("Invalid selection.")
-        except ValueError:
-            print("Please input number.")
-    else:
-        print("No matching results found.")
+            
+            # Allow the user to select a result to view its video720
+            try:
+                selection = int(input("\nSelect a number to view its video: "))
+                if 1 <= selection <= len(results):
+                    selected_anime = results[selection - 1][0]
+                    video_url = (
+                        f"https://naedist.animemusicquiz.com/{selected_anime['video720']}"
+                        if selected_anime.get('video720')
+                        else f"https://naedist.animemusicquiz.com/{selected_anime['video480']}"
+                    )
+                    print(video_url)
+                    webbrowser.open(video_url)
+                else:
+                    print("Invalid selection.")
+            except ValueError:
+                print("Please input number.")
+        else:
+            print("No matching results found.")
 
 if __name__ == "__main__":
     main()
