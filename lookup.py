@@ -41,7 +41,8 @@ def search_animes(data, input_value, song_type_filter=None, type_number_filter=N
                         continue
                     if type_number_filter is not None and anime['typeNumber'] != type_number_filter:
                         continue
-                    results.append((anime, "altAnimeNames"))
+                    # Store the matched alt name instead of the entire list
+                    results.append((anime, alt_name))  # Store the first matching alt name
                     break  # Stop checking other alt names once a match is found
 
     return results
@@ -93,7 +94,7 @@ def main():
         print("\nMatching Animes:")
         for i, (anime, matched_field) in enumerate(results, start=1):
             print(
-                f"{i}. {anime[matched_field]} ({anime['songName']}) - "
+                f"{i}. {matched_field} ({anime['songName']}) - "
                 f"{song_typer[anime['songType']]} {'' if anime['typeNumber'] == None else anime['typeNumber']}"
             )
         
