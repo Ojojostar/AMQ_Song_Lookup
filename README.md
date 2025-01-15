@@ -12,6 +12,7 @@ if anyone knows how to always have the up to date version of the json do let me 
 2. move it to desired location and then add amq_lookup to PATH
 3. open command line and type 'amq'
 4. Yuri!!!!
+5. ^C to exit
 
 ## user manual
 Basically type in name of anime/artist/song and it will find all matches. search enging works similar to that of amq in which spaces do funny stuff.
